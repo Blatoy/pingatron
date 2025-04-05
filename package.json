@@ -1,0 +1,20 @@
+{
+  "name": "pingatron",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts"
+  },
+  "author": "Blatoy",
+  "license": "GPL-3.0-only",
+  "description": "A simple tool to monitor and log ping results, along weather data to help troubleshooting network issues.",
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@types/ping": "^0.4.4",
+    "typescript": "^5.8.3",
+    "tsx": "^4.19.3"
+  },
+  "dependencies": {
+    "ping": "^0.4.4"
+  }
+}

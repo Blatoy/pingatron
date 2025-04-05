@@ -1,0 +1,80 @@
+import config from "./config";
+import * as logger from "./logger";
+import ping from "ping";
+
+type ServerResult = {
+    packetLost: boolean;
+    time: number;
+};
+
+type PingResult = {
+    minPing: number;
+    maxPing: number;
+    average: number;
+    sent: number;
+    received: number;
+    lost: number;
+    timestamp: string;
+};
+
+export class Pinger {
+    /**
+     * @param onPingResults Callback function to handle ping results. Server results are in the same order as the servers in config.json.
+     */
+    constructor(private onPingResults: (result: PingResult, serverResults: ServerResult[]) => void) {
+        this.pingServers();
+
+        setInterval(() => {
+            this.pingServers();
+        }, config.ping_interval_seconds * 1000);
+    }
+
+    private async pingServers() {
+        try {
+            const pingResults = await Promise.all(
+                config.servers.map((server) =>
+                    ping.promise.probe(server, {
+                        timeout: config.ping_timeout_seconds,
+                    })
+                )
+            );
+
+            const results = {
+                minPing: Infinity,
+                maxPing: -Infinity,
+                average: 0,
+                sent: pingResults.length,
+                received: 0,
+                lost: 0,
+                timestamp: new Date().toISOString(),
+            };
+
+            const serverResults = [];
+
+            for (const result of pingResults) {
+                const packetLost = result.times.length === 0;
+                const time = packetLost ? Infinity : result.times[0];
+
+                if (packetLost) {
+                    results.lost++;
+                } else {
+                    results.received++;
+                    results.average += time;
+                    results.minPing = Math.min(results.minPing, time);
+                    results.maxPing = Math.max(results.maxPing, time);
+                }
+
+                serverResults.push({
+                    packetLost,
+                    time,
+                });
+            }
+
+            results.average /= results.received;
+
+            this.onPingResults(results, serverResults);
+        } catch (err) {
+            logger.error("Failed to ping servers: ", err);
+        }
+    }
+}

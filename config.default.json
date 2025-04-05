@@ -1,0 +1,14 @@
+{
+    "servers": ["8.8.8.8"],
+    "ping_timeout_seconds": 2,
+    "ping_interval_seconds": 2,
+    "refresh_weather_interval_minutes": 15,
+    "warning_threshold": 30,
+    "error_threshold": 60,
+    "track_weather": false,
+    "location": {
+        "latitude": 46.99,
+        "longitude": 6.924
+    },
+    "result_folder_path":  "./results"
+}
