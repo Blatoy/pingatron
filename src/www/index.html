@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pingatron live view</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="main.js" defer></script>
+</head>
+
+<body>
+    <main>
+        <div class="card">
+            <div class="header">
+                Worst ping (<span data-api="ping/historyLengthSeconds" data-transformer="secondsToMinutes" class="history-length">-</span> min)
+            </div>
+            <div class="content">
+                <div class="status-circle default centered" data-api="ping/latencyStatus" data-transformer="classFromStatus">
+                    <span data-api="ping/maxAverage">-</span>&nbsp;ms
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="header">Latency issues (<span data-api="ping/historyLengthSeconds" data-transformer="secondsToMinutes" class="history-length">-</span> min)</div>
+            <div class="content">
+                <div class="status-circle default centered" data-api="ping/issueCountStatus" data-transformer="classFromStatus">
+                    <span data-api="ping/latencyIssuesCount">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="header">General Weather</div>
+            <div class="content">
+                <p><label>Temperature:</label>          <span data-api="weather/temperature_2m">-</span> °C</p>
+                <p><label>Day / Night:</label>          <span data-api="weather/is_day" data-transformer="dayNight">-</span></p>
+                <p><label>Surface pressure:</label>     <span data-api="weather/surface_pressure">-</span> hPa</p>
+                <p><label>Relative humidity:</label>    <span data-api="weather/relative_humidity_2m">-</span> %</p>
+                <p><label>Precipitation:</label>        <span data-api="weather/precipitation">-</span> mm</p>
+                <p><label>Rain:</label>                 <span data-api="weather/rain">-</span> mm</p>
+                <p><label>Shower:</label>               <span data-api="weather/showers">-</span> mm</p>
+                <p><label>Snowfall:</label>             <span data-api="weather/snowfall">-</span> cm</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="header">Status</div>
+            <div class="content">
+                <p><label>Weather time:</label>         <span data-api="weather/time" data-transformer="isoDateToTime">-</span></p>
+                <p><label>Last ping time:</label>       <span data-api="ping/lastResult.timestamp" data-transformer="isoDateToTime">-</span></p>
+                <p><label>Last ping avg time:</label>   <span data-api="ping/lastResult.averagePing">-</span> ms</p>
+                <p><label>Last ping min time:</label>   <span data-api="ping/lastResult.minPing">-</span> ms</p>
+                <p><label>Last ping max time:</label>   <span data-api="ping/lastResult.maxPing">-</span> ms</p>
+                <p><label>Last sent:</label>            <span data-api="ping/lastResult.sent">-</span></p>
+                <p><label>Last received:</label>        <span data-api="ping/lastResult.received">-</span></p>
+                <p><label>Last lost:</label>            <span data-api="ping/lastResult.lost">-</span></p>
+            </div>
+        </div>
+
+    </main>
+</body>
+
+</html>
