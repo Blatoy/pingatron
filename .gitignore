@@ -2,3 +2,4 @@ results/
 node_modules/
 logs/
 config.json
+.vscode/settings.json
