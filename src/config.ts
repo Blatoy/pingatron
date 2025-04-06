@@ -14,6 +14,7 @@ const config: {
     refresh_weather_interval_minutes: number;
     error_threshold: number;
     warning_threshold: number;
+    startup_ignore_seconds: number;
     location: {
         latitude: number;
         longitude: number;

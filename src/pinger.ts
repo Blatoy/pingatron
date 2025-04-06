@@ -18,6 +18,8 @@ type PingResult = {
 };
 
 export class Pinger {
+    private discardFirstResults: boolean = true;
+
     /**
      * @param onPingResults Callback function to handle ping results. Server results are in the same order as the servers in config.json.
      */
@@ -27,6 +29,11 @@ export class Pinger {
         setInterval(() => {
             this.pingServers();
         }, config.ping_interval_seconds * 1000);
+
+        setTimeout(() => {
+            this.discardFirstResults = false;
+        }, config.startup_ignore_seconds * 1000);
+    }
     }
 
     private async pingServers() {
@@ -38,6 +45,15 @@ export class Pinger {
                     })
                 )
             );
+
+            if (this.discardFirstResults) {
+                // This is done because because often the first ping is very high
+                // It could be cause of DNS lookup, at least on Windows but not sure
+                logger.print(
+                    `Ignored ping result, waiting for ${config.startup_ignore_seconds} seconds to start monitoring`
+                );
+                return;
+            }
 
             const results = {
                 minPing: Infinity,
