@@ -16,10 +16,10 @@ export class ResultWriter {
      * Closes the write stream and creates a new one for the next day
      */
     private checkDayChanged() {
-        const currentDay = new Date().getDate();
+        const currentDayNumber = new Date().getDate();
 
-        if (currentDay !== this.dayNumber) {
-            this.dayNumber = currentDay;
+        if (currentDayNumber !== this.dayNumber) {
+            this.dayNumber = currentDayNumber;
             this.writeStream?.end();
             this.createWriteStream();
         }
@@ -38,7 +38,8 @@ export class ResultWriter {
      * Create the write stream for the results, using the current date as the file name
      */
     private createWriteStream() {
-        const dateString = new Date().toISOString().split("T")[0];
+        const date = new Date();
+        const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
         const path = `${config.result_folder_path}/${this.folderName}/${dateString}.csv`;
 
         const fileExists = fs.existsSync(path);
