@@ -87,6 +87,9 @@ export class Pinger {
             }
 
             results.averagePing /= results.received;
+            results.minPing = results.received > 0 ? results.minPing : Infinity;
+            results.maxPing = results.received > 0 ? results.maxPing : Infinity;
+            results.averagePing = results.received > 0 ? results.averagePing : Infinity;
 
             this.onPingResults(results, serverResults);
         } catch (err) {
