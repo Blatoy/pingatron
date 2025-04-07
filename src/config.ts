@@ -11,6 +11,7 @@ const config: {
     servers: string[];
     ping_timeout_seconds: number;
     ping_interval_seconds: number;
+    ping_history_length_seconds: number;
     refresh_weather_interval_minutes: number;
     error_threshold: number;
     warning_threshold: number;

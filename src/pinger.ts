@@ -20,6 +20,10 @@ type PingResult = {
 export class Pinger {
     private discardFirstResults: boolean = true;
 
+    private recentHistory: PingResult[] = [];
+    private recentWorstAverage: number = 0;
+    private recentHighLatencyCount: number = 0;
+
     /**
      * @param onPingResults Callback function to handle ping results. Server results are in the same order as the servers in config.json.
      */
@@ -33,6 +37,43 @@ export class Pinger {
         setTimeout(() => {
             this.discardFirstResults = false;
         }, config.startup_ignore_seconds * 1000);
+    }
+
+    private addToPingHistory(result: PingResult) {
+        this.recentHistory.push(result);
+
+        if (result.averagePing > config.warning_threshold) {
+            this.recentHighLatencyCount++;
+        }
+
+        if (result.averagePing > this.recentWorstAverage) {
+            this.recentWorstAverage = result.averagePing;
+        }
+
+        const cutOffDate = new Date(Date.now() - config.ping_history_length_seconds * 1000).toISOString();
+
+        while (this.recentHistory.length > 0 && this.recentHistory[0].timestamp < cutOffDate) {
+            const removedResult = this.recentHistory.shift();
+            if (removedResult.averagePing > config.warning_threshold) {
+                this.recentHighLatencyCount--;
+            }
+
+            if (removedResult.averagePing === this.recentWorstAverage) {
+                this.findMaxValues();
+            }
+        }
+    }
+
+    private findMaxValues() {
+        this.recentWorstAverage = Math.max(...this.recentHistory.map((result) => result.averagePing));
+    }
+
+    public get maxAverage() {
+        return this.recentWorstAverage;
+    }
+
+    public get latencyIssuesCount() {
+        return this.recentHighLatencyCount;
     }
     }
 
@@ -91,6 +132,7 @@ export class Pinger {
             results.maxPing = results.received > 0 ? results.maxPing : Infinity;
             results.averagePing = results.received > 0 ? results.averagePing : Infinity;
 
+            this.addToPingHistory(results);
             this.onPingResults(results, serverResults);
         } catch (err) {
             logger.error("Failed to ping servers: ", err);
