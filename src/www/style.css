@@ -4,8 +4,6 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    height: 100vh;
-    width: 100vw;
 }
 
 .page-centered {
@@ -101,4 +99,34 @@ label {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.history div {
+    padding: 10px;
+    margin: 10px;
+    border-radius: 10px;
+    background-color: #333;
+}
+
+table {
+    width: 500px;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table th {
+    text-align: left;
+    padding: 5px;
+    background-color: #444;
+    border: 1px solid #555;
+}
+
+table td {
+    padding: 5px;
+    border: 1px solid #555;
+}
+
+.history p span{
+    font-weight: bold;
+    width: fit-content;
 }
