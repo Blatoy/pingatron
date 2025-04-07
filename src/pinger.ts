@@ -24,6 +24,8 @@ export class Pinger {
     private recentWorstAverage: number = 0;
     private recentHighLatencyCount: number = 0;
 
+    private lastPingResult: PingResult | null = null;
+
     /**
      * @param onPingResults Callback function to handle ping results. Server results are in the same order as the servers in config.json.
      */
@@ -75,6 +77,9 @@ export class Pinger {
     public get latencyIssuesCount() {
         return this.recentHighLatencyCount;
     }
+
+    public get lastResult() {
+        return this.lastPingResult;
     }
 
     private async pingServers() {
@@ -132,6 +137,7 @@ export class Pinger {
             results.maxPing = results.received > 0 ? results.maxPing : Infinity;
             results.averagePing = results.received > 0 ? results.averagePing : Infinity;
 
+            this.lastPingResult = results;
             this.addToPingHistory(results);
             this.onPingResults(results, serverResults);
         } catch (err) {
