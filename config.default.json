@@ -12,5 +12,10 @@
         "latitude": 46.99,
         "longitude": 6.924
     },
-    "result_folder_path":  "./results"
+    "live_view": {
+        "port": 49543,
+        "host": "localhost",
+        "enabled": false
+    },
+    "result_folder_path": "./results"
 }

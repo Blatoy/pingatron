@@ -4,6 +4,7 @@ import { Pinger } from "./pinger";
 import { Weather } from "./weather";
 import { ResultWriter } from "./result-writer";
 import config from "./config";
+import { LiveView } from "./live-view";
 
 const allResultHeaders = [
     "timestamp",
@@ -50,7 +51,7 @@ async function main() {
         return new ResultWriter(serverName, serverResultHeaders);
     });
 
-    new Pinger((result, serverResults) => {
+    const pinger = new Pinger((result, serverResults) => {
         const weatherData = [
             weather.latest.time,
             weather.latest.temperature_2m,
@@ -92,6 +93,10 @@ async function main() {
             logger.print(textResult);
         }
     });
+
+    if (config.live_view.enabled) {
+        new LiveView(weather, pinger);
+    }
 }
 
 main();

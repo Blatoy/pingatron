@@ -20,7 +20,12 @@ const config: {
         latitude: number;
         longitude: number;
     };
-    result_folder_path:  string;
+    live_view: {
+        port: number;
+        host: string;
+        enabled: boolean;
+    };
+    result_folder_path: string;
 } = JSON.parse(fs.readFileSync("./config.json", "utf8"));
 
 export default config;
