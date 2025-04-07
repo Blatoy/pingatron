@@ -70,7 +70,7 @@ async function main() {
             result.received,
             result.lost,
             result.minPing,
-            result.average,
+            result.averagePing,
             result.maxPing,
         ]);
 
@@ -83,10 +83,10 @@ async function main() {
             ]);
         });
 
-        const textResult = `${result.timestamp}: sent=${result.sent}, lost=${result.lost}. min=${result.minPing} avg=${result.average}, max=${result.maxPing}`;
-        if (result.average > config.error_threshold) {
+        const textResult = `${result.timestamp}: sent=${result.sent}, lost=${result.lost}. min=${result.minPing} avg=${result.averagePing}, max=${result.maxPing}`;
+        if (result.averagePing > config.error_threshold) {
             logger.printColored(logger.RED, textResult);
-        } else if (result.average > config.warning_threshold) {
+        } else if (result.averagePing > config.warning_threshold) {
             logger.printColored(logger.YELLOW, textResult);
         } else {
             logger.print(textResult);

@@ -10,7 +10,7 @@ type ServerResult = {
 type PingResult = {
     minPing: number;
     maxPing: number;
-    average: number;
+    averagePing: number;
     sent: number;
     received: number;
     lost: number;
@@ -58,7 +58,7 @@ export class Pinger {
             const results = {
                 minPing: Infinity,
                 maxPing: -Infinity,
-                average: 0,
+                averagePing: 0,
                 sent: pingResults.length,
                 received: 0,
                 lost: 0,
@@ -75,7 +75,7 @@ export class Pinger {
                     results.lost++;
                 } else {
                     results.received++;
-                    results.average += time;
+                    results.averagePing += time;
                     results.minPing = Math.min(results.minPing, time);
                     results.maxPing = Math.max(results.maxPing, time);
                 }
@@ -86,7 +86,7 @@ export class Pinger {
                 });
             }
 
-            results.average /= results.received;
+            results.averagePing /= results.received;
 
             this.onPingResults(results, serverResults);
         } catch (err) {
