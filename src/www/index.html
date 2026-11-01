@@ -29,7 +29,7 @@
             </div>
         </div>
 
-        <div class="card">
+        <div class="card" data-api="weather/temperature_2m" data-transformer="hideIfMissing">
             <div class="header">General Weather</div>
             <div class="content">
                 <p><label>Temperature:</label>          <span data-api="weather/temperature_2m">-</span> °C</p>
@@ -46,7 +46,9 @@
         <div class="card">
             <div class="header">Status</div>
             <div class="content">
-                <p><label>Weather time:</label>         <span data-api="weather/time" data-transformer="isoDateToTime">-</span></p>
+                <p data-api="weather/time" data-transformer="hideIfMissing">
+                    <label>Weather time:</label>         <span data-api="weather/time" data-transformer="isoDateToTime">-</span>
+                </p>
                 <p><label>Last ping time:</label>       <span data-api="ping/lastResult.timestamp" data-transformer="isoDateToTime">-</span></p>
                 <p><label>Last ping avg time:</label>   <span data-api="ping/lastResult.averagePing" data-transformer="round">-</span> ms</p>
                 <p><label>Last ping min time:</label>   <span data-api="ping/lastResult.minPing" data-transformer="round">-</span> ms</p>

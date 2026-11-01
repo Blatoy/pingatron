@@ -41,6 +41,9 @@ const transformers = {
         const date = new Date(Date.parse(value) - new Date().getTimezoneOffset() * 60 * 1000);
         element.innerText = date.toLocaleTimeString();
     },
+    hideIfMissing: (value, element) => {
+        element.classList.toggle("hidden", !value);
+    }
 };
 
 const dynamicElements = document.querySelectorAll("[data-api]");

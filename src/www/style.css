@@ -108,6 +108,10 @@ label {
     background-color: #333;
 }
 
+.hidden {
+    display: none;
+}
+
 table {
     width: 500px;
     border-collapse: collapse;
