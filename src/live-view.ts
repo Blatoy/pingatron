@@ -7,13 +7,7 @@ import * as logger from "./logger";
 
 import { fileURLToPath } from "url";
 import { Weather } from "./weather";
-import { Pinger } from "./pinger";
-
-enum Status {
-    ok = 0,
-    warning = 1,
-    error = 2,
-}
+import { Pinger, Status } from "./pinger";
 
 export class LiveView {
     private server = Fastify();
@@ -38,6 +32,7 @@ export class LiveView {
                 latencyStatus: this.getLatencyStatus(),
                 historyLengthSeconds: config.ping_history_length_seconds,
                 latencyIssuesCount: pinger.latencyIssuesCount,
+                serverIssues: pinger.recentServerIssues,
                 lastResult: pinger.lastResult,
             };
         });
@@ -95,11 +90,11 @@ export class LiveView {
                             // timestamp,weatherTimestamp,temperature,relativeHumidity,isDay,precipitation,rain,shower,snowfall,surfacePressure,sentCount,receivedCount,lostCount,minPing,avgPing,maxPing
                             for (const line of lines) {
                                 const columns = line.split(",");
-                                const average = parseFloat(columns[13]);
                                 const sent = parseInt(columns[10]);
                                 const received = parseInt(columns[11]);
                                 const lost = parseInt(columns[12]);
-                                const min = parseFloat(columns[14]);
+                                const min = parseFloat(columns[13]);
+                                const average = parseFloat(columns[14]);
                                 const max = parseFloat(columns[15]);
 
                                 if (
@@ -110,6 +105,7 @@ export class LiveView {
                                     isNaN(min) ||
                                     isNaN(max)
                                 ) {
+                                    console.log(line)
                                     continue;
                                 }
 
@@ -117,7 +113,7 @@ export class LiveView {
                                 packetsReceived += received;
                                 packetsLost += lost;
 
-                                if (average > config.warning_threshold) {
+                                if (max > config.warning_threshold) {
                                     latePackets++;
 
                                     const date = new Date(Date.parse(columns[0]));
@@ -127,6 +123,7 @@ export class LiveView {
                                         average: average,
                                         min: min,
                                         max: max,
+                                        lost: lost
                                     });
                                 }
                             }

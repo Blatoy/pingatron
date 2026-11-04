@@ -3,8 +3,9 @@ import * as logger from "./logger";
 import ping from "ping";
 
 type ServerResult = {
+    serverName: string;
     packetLost: boolean;
-    time: number;
+    pingTime: number;
 };
 
 type PingResult = {
@@ -14,8 +15,15 @@ type PingResult = {
     sent: number;
     received: number;
     lost: number;
+    serverResults: ServerResult[]
     timestamp: string;
 };
+
+export enum Status {
+    ok = 0,
+    warning = 1,
+    error = 2,
+}
 
 export class Pinger {
     private discardFirstResults: boolean = true;
@@ -23,6 +31,14 @@ export class Pinger {
     private recentHistory: PingResult[] = [];
     private recentWorstAverage: number = 0;
     private recentHighLatencyCount: number = 0;
+
+    private recentIssuesPerServer: {
+        latencyStatus: Status;
+        issueCountStatus: Status;
+        serverName: string
+        worstPing: number
+        highLatencyCount: number
+    }[] = [];
 
     private lastPingResult: PingResult | null = null;
 
@@ -64,6 +80,44 @@ export class Pinger {
                 this.findMaxValues();
             }
         }
+
+        this.recentIssuesPerServer = [];
+        for (let serverName of config.servers) {
+            this.recentIssuesPerServer.push({
+                serverName: serverName,
+                worstPing: 0,
+                highLatencyCount: 0,
+                issueCountStatus: Status.ok,
+                latencyStatus: Status.ok
+            });
+        }
+
+        for (const pingResult of this.recentHistory) {
+            for (let i = 0; i < pingResult.serverResults.length; i++) {
+                const serverIssue = this.recentIssuesPerServer[i];
+                const serverResult = pingResult.serverResults[i];
+
+                if (serverResult.pingTime > serverIssue.worstPing) {
+                    serverIssue.worstPing = serverResult.pingTime;
+                }
+
+                if (serverResult.pingTime > config.warning_threshold) {
+                    serverIssue.highLatencyCount++;
+                }
+
+                if (serverIssue.worstPing > config.error_threshold) {
+                    serverIssue.latencyStatus = Status.error;
+                } else if (serverIssue.worstPing > config.warning_threshold) {
+                    serverIssue.latencyStatus = Status.warning;
+                }
+
+                if (serverIssue.highLatencyCount > 5) {
+                    serverIssue.issueCountStatus = Status.error;
+                } else if (serverIssue.highLatencyCount > 0) {
+                    serverIssue.issueCountStatus = Status.warning;
+                }
+            }
+        }
     }
 
     private findMaxValues() {
@@ -80,6 +134,10 @@ export class Pinger {
 
     public get lastResult() {
         return this.lastPingResult;
+    }
+
+    public get recentServerIssues() {
+        return this.recentIssuesPerServer;
     }
 
     private async pingServers() {
@@ -101,19 +159,21 @@ export class Pinger {
                 return;
             }
 
-            const results = {
+            const results: PingResult = {
                 minPing: Infinity,
                 maxPing: -Infinity,
                 averagePing: 0,
                 sent: pingResults.length,
                 received: 0,
                 lost: 0,
+                serverResults: [],
                 timestamp: new Date().toISOString(),
             };
 
-            const serverResults = [];
+            const serverResults: ServerResult[] = [];
 
-            for (const result of pingResults) {
+            for (let i = 0; i < pingResults.length; i++) {
+                const result = pingResults[i];
                 const packetLost = result.times.length === 0;
                 const time = packetLost ? Infinity : result.times[0];
 
@@ -127,11 +187,13 @@ export class Pinger {
                 }
 
                 serverResults.push({
+                    serverName: config.servers[i],
                     packetLost,
-                    time,
+                    pingTime: time,
                 });
             }
 
+            results.serverResults = serverResults;
             results.averagePing /= results.received;
             results.minPing = results.received > 0 ? results.minPing : Infinity;
             results.maxPing = results.received > 0 ? results.maxPing : Infinity;

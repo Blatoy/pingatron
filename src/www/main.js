@@ -24,7 +24,11 @@ const transformers = {
         element.textContent = value;
     },
     round: (value, element) => {
-        element.textContent = Math.round(value);
+        if (isNaN(value) || !isFinite(value) || value === null) {
+            element.textContent = "999";
+        } else {
+            element.textContent = Math.round(value);
+        }
     },
     secondsToMinutes: (value, element) => {
         element.textContent = Math.floor(value / 60);
@@ -46,8 +50,11 @@ const transformers = {
     }
 };
 
+const arrayElements = document.querySelectorAll("[data-api-array]");
 const dynamicElements = document.querySelectorAll("[data-api]");
+
 const APIPathToElements = {};
+const APIPathToArrays = {};
 
 // Map an API path to the corresponding elements and their transformers
 dynamicElements.forEach((element) => {
@@ -68,6 +75,20 @@ dynamicElements.forEach((element) => {
     }
 });
 
+// Map array API paths to their containers and templates
+arrayElements.forEach((container) => {
+    const apiPath = container.dataset.apiArray;
+
+    if (!(apiPath in APIPathToArrays)) {
+        APIPathToArrays[apiPath] = [];
+    }
+
+    APIPathToArrays[apiPath].push({
+        container,
+        template: container.innerHTML,
+    });
+});
+
 async function fetchData(api) {
     const result = await fetch(api.url);
     const data = await result.json();
@@ -76,13 +97,66 @@ async function fetchData(api) {
     const apiPaths = objectToApiPath(data, basePath);
 
     for (const apiPath in apiPaths) {
+        const value = apiPaths[apiPath];
+
+        // Handle regular elements
         const elements = APIPathToElements[apiPath];
+
         if (elements) {
             elements.forEach(({ element, transformer }) => {
-                const value = apiPaths[apiPath];
                 transformer(value, element);
             });
-        } else {
+        }
+
+        // Handle arrays
+        const arrays = APIPathToArrays[apiPath];
+
+        if (arrays) {
+            arrays.forEach(({ container, template }) => {
+                container.innerHTML = "";
+
+                if (!Array.isArray(value)) {
+                    console.warn(`Expected an array for API path ${apiPath}`);
+                    return;
+                }
+
+                value.forEach((item) => {
+                    const wrapper = document.createElement("div");
+                    wrapper.innerHTML = template;
+
+                    const clone = wrapper.firstElementChild;
+
+                    // Populate all array keys
+                    clone.querySelectorAll("[data-array-key]").forEach((element) => {
+                        const key = element.dataset.arrayKey;
+                        const transformerName = element.dataset.transformer || "default";
+                        const transformer = transformers[transformerName];
+
+                        if (!transformer) {
+                            console.warn(`Transformer ${transformerName} not found for array key ${key}`);
+                            return;
+                        }
+
+                        transformer(item[key], element);
+                    });
+
+                    // Also handle a data-array-key on the root element
+                    if (clone.matches("[data-array-key]")) {
+                        const key = clone.dataset.arrayKey;
+                        const transformerName = clone.dataset.transformer || "default";
+                        const transformer = transformers[transformerName];
+
+                        if (transformer) {
+                            transformer(item[key], clone);
+                        }
+                    }
+
+                    container.appendChild(clone);
+                });
+            });
+        }
+
+        if (!elements && !arrays) {
             console.warn(`No elements found for API path ${apiPath}`);
         }
     }
@@ -92,7 +166,10 @@ async function fetchData(api) {
 function objectToApiPath(data, path = "", separator = "", result = {}) {
     for (const key in data) {
         const value = data[key];
-        if (typeof value === "object" && value !== null) {
+        if (value !== null && Array.isArray(value)) {
+            result[path ? `${path}${separator}${key}` : key] = value;
+        }
+        else if (typeof value === "object" && value !== null) {
             objectToApiPath(value, path ? `${path}${separator}${key}` : key, ".", result);
         } else {
             result[path ? `${path}${separator}${key}` : key] = value;

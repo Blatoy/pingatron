@@ -80,14 +80,14 @@ async function main() {
                 result.timestamp,
                 ...weatherData,
                 serverResult.packetLost ? 1 : 0,
-                serverResult.time,
+                serverResult.pingTime,
             ]);
         });
 
         const textResult = `${result.timestamp}: sent=${result.sent}, lost=${result.lost}. min=${result.minPing} avg=${result.averagePing}, max=${result.maxPing}`;
-        if (result.averagePing > config.error_threshold) {
+        if (result.maxPing > config.error_threshold) {
             logger.printColored(logger.RED, textResult);
-        } else if (result.averagePing > config.warning_threshold) {
+        } else if (result.maxPing > config.warning_threshold) {
             logger.printColored(logger.YELLOW, textResult);
         } else {
             logger.print(textResult);
