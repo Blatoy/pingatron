@@ -2,6 +2,7 @@ const API_URL = "../api/history";
 
 // This is soooooooo ugly and ai generated but I'll fix it later
 function createCard(dailyData) {
+    console.log(dailyData)
     const card = document.createElement("div");
     const date = document.createElement("p");
     const dateSpan = document.createElement("span");
@@ -30,6 +31,8 @@ function createCard(dailyData) {
     const thAverage = document.createElement("th");
     const thMin = document.createElement("th");
     const thMax = document.createElement("th");
+    const thLost = document.createElement("th");
+    const thLate = document.createElement("th");
 
     // Set the text content of the elements
     dateSpan.textContent = dailyData.date;
@@ -45,6 +48,7 @@ function createCard(dailyData) {
     thAverage.textContent = "Average";
     thMin.textContent = "Min";
     thMax.textContent = "Max";
+    thLost.textContent = "Lost count";
 
     // Append the elements to the card
     date.appendChild(dateSpan);
@@ -63,15 +67,18 @@ function createCard(dailyData) {
     latePackets.appendChild(latePacketsSpan);
     card.appendChild(latePackets);
     card.appendChild(hr2);
-    card.appendChild(table);
-    table.appendChild(thead);
-    table.appendChild(tbody);
+    if (dailyData.latencyIssues.length > 0) {
+        card.appendChild(table);
+        table.appendChild(thead);
+        table.appendChild(tbody);
+    }
 
     thead.appendChild(trHeader);
     trHeader.appendChild(thTime);
     trHeader.appendChild(thAverage);
     trHeader.appendChild(thMin);
     trHeader.appendChild(thMax);
+    trHeader.appendChild(thLost);
 
     // Append the latency issues to the table
     dailyData.latencyIssues.forEach((issue) => {
@@ -80,16 +87,29 @@ function createCard(dailyData) {
         const tdAverage = document.createElement("td");
         const tdMin = document.createElement("td");
         const tdMax = document.createElement("td");
+        const tdLost = document.createElement("td");
 
         tdTime.textContent = issue.time;
-        tdAverage.textContent = issue.average;
-        tdMin.textContent = issue.min;
-        tdMax.textContent = issue.max;
 
-        tr.appendChild(tdTime);
-        tr.appendChild(tdAverage);
-        tr.appendChild(tdMin);
-        tr.appendChild(tdMax);
+        if (issue.min === null) {
+            tdAverage.textContent = "All packets lost";
+            tdAverage.colSpan = 4;
+            tdAverage.style.textAlign = "center";
+            tr.appendChild(tdTime);
+            tr.appendChild(tdAverage);
+        } else {
+            tdAverage.textContent = issue.average;
+            tdMin.textContent = issue.min;
+            tdMax.textContent = issue.max;
+            tdLost.textContent = issue.lost;
+
+            tr.appendChild(tdTime);
+            tr.appendChild(tdAverage);
+            tr.appendChild(tdMin);
+            tr.appendChild(tdMax);
+            tr.appendChild(tdLost);
+        }
+
         tbody.appendChild(tr);
     });
 
@@ -102,7 +122,7 @@ async function main() {
     const results = await fetch(API_URL);
     const data = await results.json();
 
-    for (const dailyData of data) {
+    for (const dailyData of data.reverse()) {
         const card = createCard(dailyData);
         mainContainer.appendChild(card);
     }
